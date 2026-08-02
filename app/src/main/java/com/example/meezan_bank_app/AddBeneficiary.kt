@@ -58,11 +58,20 @@ fun AddBeneficiaryScreen() {
         Bank("Other Banks", "O"),
         Bank("Jazz Cash Wallet", "J"),
         Bank("EasyPaisa-Telenor Bank", "E"),
+        Bank("Nayapay", "N"),
+        Bank("Sadapay", "S"),
         Bank("HBL KONNECT", "H"),
         Bank("Bank Al-Habib", "B"),
         Bank("UBL", "U"),
-        Bank("Bank Alfalah", "B")
+        Bank("Bank Alfalah", "B"),
+        Bank("Askari bank", "A"),
+        Bank("MCB", "M"),
+        Bank("BOP-Bank of Punjab", "B"),
+        Bank("NBP - (National bank of Pakistan)", "N"),
+        Bank("Allied bank", "A")
     )
+
+    val filteredBanks = banks.filter { it.name.contains(searchText, ignoreCase = true) }
 
     Column(
         modifier = Modifier
@@ -148,7 +157,7 @@ fun AddBeneficiaryScreen() {
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(banks) { bank ->
+            items(filteredBanks) { bank ->
                 BankItem(
                     bank = bank,
                     isSelected = bank.name == selectedBank,
@@ -186,23 +195,58 @@ fun BankItem(
                 BankItemContent(bank)
             }
         }
+        "Nayapay" -> {
+            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFFFFA000), Color(0xFFFFB300))))) {
+                BankItemContent(bank)
+            }
+        }
+        "Sadapay" -> {
+            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF00BFA5), Color(0xFF1DE9B6))))) {
+                BankItemContent(bank)
+            }
+        }
         "HBL KONNECT" -> {
             Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF006D64), Color(0xFF00A191), Color(0xFF00C4B4))))) {
                 BankItemContent(bank)
             }
         }
         "Bank Al-Habib" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF800000), Color(0xFFA52A2A), Color(0xFFDAA520))))) {
+            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF800000), Color(0xFFA52A2A), Color(0xFF800000))))) {
                 BankItemContent(bank)
             }
         }
         "UBL" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF003366), Color(0xFF0056B3), Color(0xFF007BFF))))) {
+            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF003366), Color(0xFF0056B3), Color(0xFF003366))))) {
                 BankItemContent(bank)
             }
         }
         "Bank Alfalah" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFFB22222), Color(0xFFDC143C), Color(0xFFFF0000))))) {
+            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFFB22222), Color(0xFFDC143C), Color(0xFFB22222))))) {
+                BankItemContent(bank)
+            }
+        }
+        "Askari bank" -> {
+            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF004B8D), Color(0xFF0066B3))))) {
+                BankItemContent(bank)
+            }
+        }
+        "MCB" -> {
+            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF007A33), Color(0xFF00A651))))) {
+                BankItemContent(bank)
+            }
+        }
+        "BOP-Bank of Punjab" -> {
+            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFFFDB913), Color(0xFFF7941D))))) {
+                BankItemContent(bank)
+            }
+        }
+        "NBP - (National bank of Pakistan)" -> {
+            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF008560), Color(0xFF00B345))))) {
+                BankItemContent(bank)
+            }
+        }
+        "Allied bank" -> {
+            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF00529B), Color(0xFF007CC3))))) {
                 BankItemContent(bank)
             }
         }
@@ -246,10 +290,17 @@ fun BankItemContent(bank: Bank) {
             "Meezan Bank" -> R.drawable.meezan_bank_logo
             "Jazz Cash Wallet" -> R.drawable.jazzcashlogo
             "EasyPaisa-Telenor Bank" -> R.drawable.easypaisalogo
+            "Nayapay" -> R.drawable.nayapaylogo
+            "Sadapay" -> R.drawable.sadapaylogo
             "HBL KONNECT" -> R.drawable.hbllogo
             "Bank Al-Habib" -> R.drawable.bankalhabiblogo
             "UBL" -> R.drawable.ubllogo
             "Bank Alfalah" -> R.drawable.bankalfalahlogo
+            "Askari bank" -> R.drawable.askaribanklogo
+            "MCB" -> R.drawable.mcblogo
+            "BOP-Bank of Punjab" -> R.drawable.bopbanklogo
+            "NBP - (National bank of Pakistan)" -> R.drawable.nbpbanklogo
+            "Allied bank" -> R.drawable.alliedbanklogo
             else -> null
         }
 
