@@ -1,6 +1,7 @@
 
 
-//money send krny k liyee ye screen h
+
+// Beneficiary add krny k liye ye screen h
 
 package com.example.meezan_bank_app
 
@@ -31,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.meezan_bank_app.ui.theme.Meezan_bank_appTheme
 
-class EnterAccountDetailsActivity : ComponentActivity() {
+class AddBenAccountDetailsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -40,7 +41,7 @@ class EnterAccountDetailsActivity : ComponentActivity() {
         setContent {
             Meezan_bank_appTheme {
                 AppBackground {
-                    EnterAccountDetailsScreen(bankName)
+                    AddBenAccountDetailsScreen(bankName)
                 }
             }
         }
@@ -48,7 +49,7 @@ class EnterAccountDetailsActivity : ComponentActivity() {
 }
 
 @Composable
-fun EnterAccountDetailsScreen(bankName: String) {
+fun AddBenAccountDetailsScreen(bankName: String) {
     var accountNumber by remember { mutableStateOf("") }
     val context = LocalContext.current
 
@@ -78,7 +79,7 @@ fun EnterAccountDetailsScreen(bankName: String) {
             }
 
             Text(
-                text = "Enter Account Details",
+                text = "Add Beneficiary",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White,
@@ -192,7 +193,7 @@ fun EnterAccountDetailsScreen(bankName: String) {
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Proceed Button
+        // Fetch account details button
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -204,11 +205,11 @@ fun EnterAccountDetailsScreen(bankName: String) {
                         colors = listOf(Color(0xFF6C2BD9), Color(0xFF9B4DFF), Color(0xFFC24DFF))
                     )
                 )
-                .clickable { /* Proceed Logic */ },
+                .clickable { /* Fetch account details Logic */ },
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Proceed",
+                text = "Fetch account details",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -221,10 +222,10 @@ fun EnterAccountDetailsScreen(bankName: String) {
 
 @Preview(showBackground = true)
 @Composable
-fun EnterAccountDetailsPreview() {
+fun AddBenAccountDetailsPreview() {
     Meezan_bank_appTheme {
         AppBackground {
-            EnterAccountDetailsScreen("Meezan Bank")
+            AddBenAccountDetailsScreen("Meezan Bank")
         }
     }
 }

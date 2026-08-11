@@ -1,5 +1,6 @@
 package com.example.meezan_bank_app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,7 +53,7 @@ data class Bank(
 @Composable
 fun AddBeneficiaryScreen() {
     var searchText by remember { mutableStateOf("") }
-    var selectedBank by remember { mutableStateOf("Meezan Bank") }
+    val context = LocalContext.current
 
     val banks = listOf(
         Bank("Meezan Bank", "M"),
@@ -87,7 +89,9 @@ fun AddBeneficiaryScreen() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = { /* Handle back navigation */ },
+                onClick = { 
+                    (context as? ComponentActivity)?.onBackPressedDispatcher?.onBackPressed()
+                },
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(
@@ -160,8 +164,12 @@ fun AddBeneficiaryScreen() {
             items(filteredBanks) { bank ->
                 BankItem(
                     bank = bank,
-                    isSelected = bank.name == selectedBank,
-                    onBankClick = { selectedBank = bank.name }
+                    onBankClick = { 
+                        val intent = Intent(context, AddBenAccountDetailsActivity::class.java).apply {
+                            putExtra("BANK_NAME", bank.name)
+                        }
+                        context.startActivity(intent)
+                    }
                 )
             }
         }
@@ -171,7 +179,6 @@ fun AddBeneficiaryScreen() {
 @Composable
 fun BankItem(
     bank: Bank,
-    isSelected: Boolean,
     onBankClick: () -> Unit
 ) {
     val gradientModifier = Modifier
@@ -252,7 +259,7 @@ fun BankItem(
         }
         "Other Banks" -> {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().clickable { onBankClick() },
                 colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
                 shape = RoundedCornerShape(12.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)

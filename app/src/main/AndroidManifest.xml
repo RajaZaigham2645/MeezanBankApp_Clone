@@ -42,6 +42,11 @@
             android:exported="false"
             android:label="Enter Account Details"
             android:theme="@style/Theme.Meezan_bank_app" />
+        <activity
+            android:name=".AddBenAccountDetailsActivity"
+            android:exported="false"
+            android:label="Add Beneficiary Details"
+            android:theme="@style/Theme.Meezan_bank_app" />
     </application>
 
 </manifest>
