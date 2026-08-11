@@ -119,7 +119,11 @@ fun SendMoneyScreen() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = { /* Handle back navigation */ },
+                onClick = { 
+                    if (context is ComponentActivity) {
+                        context.onBackPressedDispatcher.onBackPressed()
+                    }
+                },
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(
@@ -190,13 +194,13 @@ fun SendMoneyScreen() {
             )
         }
 
-        // Add Beneficiary Button
+        // Add Beneficiary Button -> Navigates to SendToNewBen
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .clickable {
-                    val intent = Intent(context, AddBeneficiary::class.java)
+                    val intent = Intent(context, SendToNewBen::class.java)
                     context.startActivity(intent)
                 },
             colors = CardDefaults.cardColors(
