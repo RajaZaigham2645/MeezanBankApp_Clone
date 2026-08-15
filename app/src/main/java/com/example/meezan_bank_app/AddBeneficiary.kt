@@ -76,7 +76,8 @@ fun AddBeneficiaryScreen() {
     }
 
     val filteredBanks = remember(searchText, banks) {
-        banks.filter { it.name.contains(searchText, ignoreCase = true) }
+        if (searchText.isEmpty()) banks
+        else banks.filter { it.name.contains(searchText, ignoreCase = true) }
     }
 
     Column(
@@ -169,7 +170,7 @@ fun AddBeneficiaryScreen() {
                 items = filteredBanks,
                 key = { it.name }
             ) { bank ->
-                val onBankClick = remember(bank, context) {
+                val onBankClick = remember(bank.name, context) {
                     {
                         val intent = Intent(context, AddBenAccountDetailsActivity::class.java).apply {
                             putExtra("BANK_NAME", bank.name)
@@ -191,133 +192,68 @@ fun BankItem(
     bank: Bank,
     onBankClick: () -> Unit
 ) {
-    val gradientModifier = Modifier
-        .fillMaxWidth()
-        .clip(RoundedCornerShape(12.dp))
-        .clickable { onBankClick() }
+    val brush = remember(bank.name) {
+        when (bank.name) {
+            "Meezan Bank" -> Brush.horizontalGradient(listOf(Color(0xFF6C2BD9), Color(0xFF9B4DFF), Color(0xFFC24DFF)))
+            "Jazz Cash Wallet" -> Brush.horizontalGradient(listOf(Color(0xFFFF6B00), Color(0xFFFF9100), Color(0xFFFFB700)))
+            "EasyPaisa-Telenor Bank" -> Brush.horizontalGradient(listOf(Color(0xFF00C853), Color(0xFF1DE9B6), Color(0xFF00E676)))
+            "Nayapay" -> Brush.horizontalGradient(listOf(Color(0xFFFFA000), Color(0xFFFFB300)))
+            "Sadapay" -> Brush.horizontalGradient(listOf(Color(0xFF00BFA5), Color(0xFF1DE9B6)))
+            "HBL KONNECT" -> Brush.horizontalGradient(listOf(Color(0xFF006D64), Color(0xFF00A191), Color(0xFF00C4B4)))
+            "Bank Al-Habib" -> Brush.horizontalGradient(listOf(Color(0xFF800000), Color(0xFFA52A2A), Color(0xFF800000)))
+            "UBL" -> Brush.horizontalGradient(listOf(Color(0xFF003366), Color(0xFF0056B3), Color(0xFF003366)))
+            "Bank Alfalah" -> Brush.horizontalGradient(listOf(Color(0xFFB22222), Color(0xFFDC143C), Color(0xFFB22222)))
+            "Askari bank" -> Brush.horizontalGradient(listOf(Color(0xFF004B8D), Color(0xFF0066B3)))
+            "MCB" -> Brush.horizontalGradient(listOf(Color(0xFF007A33), Color(0xFF00A651)))
+            "BOP-Bank of Punjab" -> Brush.horizontalGradient(listOf(Color(0xFFFDB913), Color(0xFFF7941D)))
+            "NBP - (National bank of Pakistan)" -> Brush.horizontalGradient(listOf(Color(0xFF008560), Color(0xFF00B345)))
+            "Allied bank" -> Brush.horizontalGradient(listOf(Color(0xFF00529B), Color(0xFF007CC3)))
+            else -> null
+        }
+    }
 
-    when (bank.name) {
-        "Meezan Bank" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF6C2BD9), Color(0xFF9B4DFF), Color(0xFFC24DFF))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
+    if (brush != null) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(brush)
+                .clickable { onBankClick() }
+        ) {
+            BankItemContent(bank)
         }
-        "Jazz Cash Wallet" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFFFF6B00), Color(0xFFFF9100), Color(0xFFFFB700))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "EasyPaisa-Telenor Bank" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF00C853), Color(0xFF1DE9B6), Color(0xFF00E676))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "Nayapay" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFFFFA000), Color(0xFFFFB300))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "Sadapay" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF00BFA5), Color(0xFF1DE9B6))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "HBL KONNECT" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF006D64), Color(0xFF00A191), Color(0xFF00C4B4))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "Bank Al-Habib" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF800000), Color(0xFFA52A2A), Color(0xFF800000))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "UBL" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF003366), Color(0xFF0056B3), Color(0xFF003366))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "Bank Alfalah" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFFB22222), Color(0xFFDC143C), Color(0xFFB22222))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "Askari bank" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF004B8D), Color(0xFF0066B3))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "MCB" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF007A33), Color(0xFF00A651))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "BOP-Bank of Punjab" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFFFDB913), Color(0xFFF7941D))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "NBP - (National bank of Pakistan)" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF008560), Color(0xFF00B345))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "Allied bank" -> {
-            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF00529B), Color(0xFF007CC3))) }
-            Box(modifier = gradientModifier.background(brush)) {
-                BankItemContent(bank)
-            }
-        }
-        "Other Banks" -> {
-            Card(
-                modifier = Modifier.fillMaxWidth().clickable { onBankClick() },
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    } else if (bank.name == "Other Banks") {
+        Card(
+            modifier = Modifier.fillMaxWidth().clickable { onBankClick() },
+            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(text = bank.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                }
+                Text(text = bank.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
-        else -> {
-            Card(
-                modifier = Modifier.fillMaxWidth().clickable { onBankClick() },
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                BankItemContent(bank)
-            }
+    } else {
+        Card(
+            modifier = Modifier.fillMaxWidth().clickable { onBankClick() },
+            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            BankItemContent(bank)
         }
     }
 }
 
 @Composable
 fun BankItemContent(bank: Bank) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        val logoId = when (bank.name) {
+    val logoId = remember(bank.name) {
+        when (bank.name) {
             "Meezan Bank" -> R.drawable.meezan_bank_logo
             "Jazz Cash Wallet" -> R.drawable.jazzcashlogo
             "EasyPaisa-Telenor Bank" -> R.drawable.easypaisalogo
@@ -334,7 +270,12 @@ fun BankItemContent(bank: Bank) {
             "Allied bank" -> R.drawable.alliedbanklogo
             else -> null
         }
+    }
 
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         if (logoId != null) {
             Image(
                 painter = painterResource(id = logoId),

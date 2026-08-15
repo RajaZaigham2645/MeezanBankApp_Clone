@@ -2,6 +2,7 @@ package com.example.meezan_bank_app
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,8 +26,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -42,6 +43,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.meezan_bank_app.ui.theme.Meezan_bank_appTheme
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 
 // ============================================================
 //  COLOR SYSTEM
@@ -85,54 +89,48 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Base gradient background plus soft, blurred color "blobs" that sit behind
- * the glass surfaces for a futuristic glow.
+ * Base gradient background plus soft, radial glow "blobs".
+ * Performance Optimized: Replaced expensive 'blur' with efficient radial gradients.
  */
 @Composable
 fun AppBackground(content: @Composable BoxScope.() -> Unit) {
+    val mainGradient = remember { Brush.verticalGradient(listOf(BgTop, BgMid, BgBottom)) }
+    
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(mainGradient)
+            .drawBehind {
+                // Ambient glow blobs using radial gradients (High Performance alternative to Blur)
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(AccentPurple.copy(alpha = 0.15f), Color.Transparent),
+                        center = Offset(-50.dp.toPx(), -40.dp.toPx()),
+                        radius = 400.dp.toPx()
+                    ),
+                    radius = 400.dp.toPx(),
+                    center = Offset(-50.dp.toPx(), -40.dp.toPx())
+                )
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(AccentPink.copy(alpha = 0.12f), Color.Transparent),
+                        center = Offset(size.width + 40.dp.toPx(), size.height * 0.3f),
+                        radius = 350.dp.toPx()
+                    ),
+                    radius = 350.dp.toPx(),
+                    center = Offset(size.width + 40.dp.toPx(), size.height * 0.3f)
+                )
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(AccentPurpleDeep.copy(alpha = 0.18f), Color.Transparent),
+                        center = Offset(20.dp.toPx(), size.height + 20.dp.toPx()),
+                        radius = 450.dp.toPx()
+                    ),
+                    radius = 450.dp.toPx(),
+                    center = Offset(20.dp.toPx(), size.height + 20.dp.toPx())
+                )
+            }
     ) {
-        // Blurry background layer
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(BgTop, BgMid, BgBottom)))
-                .blur(80.dp)
-        ) {
-            // Ambient glow blobs
-            Box(
-                modifier = Modifier
-                    .size(300.dp)
-                    .offset(x = (-100).dp, y = (-80).dp)
-                    .background(AccentPurple.copy(alpha = 0.30f), CircleShape)
-                    .blur(140.dp)
-            )
-            Box(
-                modifier = Modifier
-                    .size(260.dp)
-                    .align(Alignment.CenterEnd)
-                    .offset(x = 100.dp, y = 30.dp)
-                    .background(AccentPink.copy(alpha = 0.25f), CircleShape)
-                    .blur(120.dp)
-            )
-            Box(
-                modifier = Modifier
-                    .size(280.dp)
-                    .align(Alignment.BottomStart)
-                    .offset(x = (-70).dp, y = 70.dp)
-                    .background(AccentPurpleDeep.copy(alpha = 0.35f), CircleShape)
-                    .blur(150.dp)
-            )
-            Box(
-                modifier = Modifier
-                    .size(200.dp)
-                    .align(Alignment.BottomEnd)
-                    .offset(x = 60.dp, y = 40.dp)
-                    .background(AccentBlue.copy(alpha = 0.20f), CircleShape)
-                    .blur(100.dp)
-            )
-        }
         content()
     }
 }
@@ -150,29 +148,19 @@ fun GlassSurface(
     onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val shape = RoundedCornerShape(cornerRadius)
+    val shape = remember(cornerRadius) { RoundedCornerShape(cornerRadius) }
+    val backgroundBrush = remember(fillColors) { Brush.verticalGradient(colors = fillColors) }
+    
     Box(
         modifier = modifier
             .shadow(
-                elevation = 20.dp,
+                elevation = 12.dp, // Reduced elevation for better performance
                 shape = shape,
-                ambientColor = Color.Black.copy(alpha = 0.5f),
-                spotColor = Color.Black.copy(alpha = 0.3f)
-            )
-            .shadow(
-                elevation = 8.dp,
-                shape = shape,
-                ambientColor = glowColor,
-                spotColor = glowColor
+                ambientColor = Color.Black.copy(alpha = 0.4f),
+                spotColor = Color.Black.copy(alpha = 0.2f)
             )
             .clip(shape)
-            .background(
-                Brush.verticalGradient(
-                    colors = fillColors,
-                    startY = 0.0f,
-                    endY = 1.0f
-                )
-            )
+            .background(backgroundBrush)
             .border(BorderStroke(1.dp, Color.White.copy(alpha = borderAlpha)), shape)
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         content = content
@@ -184,8 +172,24 @@ fun GlassSurface(
 // ============================================
 @Composable
 fun BoxScope.HomeScreen() {
+    val context = LocalContext.current
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Home", "Transactions", "Invest", "Profile")
+    val tabs = remember { listOf("Home", "Transactions", "Invest", "Profile") }
+
+    val startScanner = {
+        val options = GmsBarcodeScannerOptions.Builder()
+            .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+            .build()
+        val scanner = GmsBarcodeScanning.getClient(context, options)
+        scanner.startScan()
+            .addOnSuccessListener { barcode ->
+                val rawValue: String? = barcode.rawValue
+                Toast.makeText(context, "Scanned: $rawValue", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(context, "Scan failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
 
     Column(
         modifier = Modifier
@@ -251,7 +255,7 @@ fun BoxScope.HomeScreen() {
         TransactionsSection()
         Spacer(Modifier.height(16.dp))
     }
-    BottomNavBar(modifier = Modifier)
+    BottomNavBar(onQrClick = { startScanner() }, modifier = Modifier)
 }
 
 // ============================================================
@@ -265,7 +269,6 @@ fun TopBar() {
             .height(64.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Logo in the middle of the header - Slightly bigger
         Image(
             painter = painterResource(id = R.drawable.meezan_bank_logo),
             contentDescription = "Meezan Bank Logo",
@@ -277,7 +280,6 @@ fun TopBar() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Profile Icon on the left
             Box(
                 modifier = Modifier
                     .size(44.dp)
@@ -307,7 +309,6 @@ fun TopBar() {
                 }
             }
 
-            // Action buttons on the right
             Row(verticalAlignment = Alignment.CenterVertically) {
                 GlassIconButton(icon = Icons.Default.Notifications, badgeCount = 3)
                 Spacer(Modifier.width(10.dp))
@@ -373,7 +374,6 @@ fun BalanceHeroSection() {
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header Row: User Name & Visibility Toggle
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -395,7 +395,6 @@ fun BalanceHeroSection() {
                     )
                 }
 
-                // Visibility Toggle Pill
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
@@ -425,7 +424,6 @@ fun BalanceHeroSection() {
 
             Spacer(Modifier.height(4.dp))
 
-            // Main Balance Row
             Row(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Center
@@ -450,7 +448,6 @@ fun BalanceHeroSection() {
 
             Spacer(Modifier.height(8.dp))
 
-            // Info Strip (Clean strip)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -476,7 +473,6 @@ fun BalanceHeroSection() {
                     )
                 }
                 
-                // Small indicator for branch
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(PositiveGreen))
                     Spacer(Modifier.width(5.dp))
@@ -562,16 +558,15 @@ fun MoneyActionButtons() {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Send Money - Gradient Button
         Box(
             modifier = Modifier
                 .weight(1f)
                 .height(56.dp)
                 .shadow(
-                    elevation = 20.dp,
+                    elevation = 16.dp,
                     shape = RoundedCornerShape(18.dp),
-                    ambientColor = AccentPurple.copy(alpha = 0.5f),
-                    spotColor = AccentPurple.copy(alpha = 0.4f)
+                    ambientColor = AccentPurple.copy(alpha = 0.4f),
+                    spotColor = AccentPurple.copy(alpha = 0.3f)
                 )
                 .clip(RoundedCornerShape(18.dp))
                 .background(
@@ -604,7 +599,6 @@ fun MoneyActionButtons() {
             }
         }
 
-        // Add Money - Glass
         GlassSurface(
             modifier = Modifier
                 .weight(1f)
@@ -738,14 +732,16 @@ data class ServiceItem(val name: String, val icon: ImageVector, val badge: Strin
 @Composable
 fun ServicesGrid() {
     val context = LocalContext.current
-    val items = listOf(
-        ServiceItem("Bills & Top-up", Icons.AutoMirrored.Filled.ReceiptLong),
-        ServiceItem("Debit Card", Icons.Default.CreditCard),
-        ServiceItem("Roast Payments", Icons.Default.Payments, badge = "New"),
-        ServiceItem("Zakat & Sadqat", Icons.Default.VolunteerActivism),
-        ServiceItem("Feedback", Icons.Default.ChatBubbleOutline),
-        ServiceItem("Settings", Icons.Default.Settings)
-    )
+    val items = remember {
+        listOf(
+            ServiceItem("Bills & Top-up", Icons.AutoMirrored.Filled.ReceiptLong),
+            ServiceItem("Debit Card", Icons.Default.CreditCard),
+            ServiceItem("Roast Payments", Icons.Default.Payments, badge = "New"),
+            ServiceItem("Zakat & Sadqat", Icons.Default.VolunteerActivism),
+            ServiceItem("Feedback", Icons.Default.ChatBubbleOutline),
+            ServiceItem("Settings", Icons.Default.Settings)
+        )
+    }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
@@ -780,19 +776,6 @@ fun ServiceGridItem(item: ServiceItem, onClick: () -> Unit = {}) {
                 glowColor = AccentPurple.copy(alpha = 0.08f),
                 onClick = onClick
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.radialGradient(
-                                colors = listOf(
-                                    Color.White.copy(alpha = 0.08f),
-                                    Color.Transparent
-                                ),
-                                radius = 0.8f
-                            )
-                        )
-                )
                 Icon(
                     item.icon,
                     contentDescription = null,
@@ -853,50 +836,19 @@ data class TxItem(
 
 @Composable
 fun TransactionsSection() {
-    val today = listOf(
-        TxItem(
-            "Peso Bill Payment",
-            "UID",
-            "1122334455",
-            "-4,500.00",
-            false,
-            Icons.AutoMirrored.Filled.ReceiptLong
-        ),
-        TxItem(
-            "SUIGAS Bill Payment",
-            "UID",
-            "1122334455",
-            "-4,500.00",
-            false,
-            Icons.Default.LocalFireDepartment
-        ),
-        TxItem(
-            "Money Received from Malik",
-            "TRX ID",
-            "1122334455",
-            "+6,500.00",
-            true,
-            Icons.Default.SwapHoriz
+    val today = remember {
+        listOf(
+            TxItem("Peso Bill Payment", "UID", "1122334455", "-4,500.00", false, Icons.AutoMirrored.Filled.ReceiptLong),
+            TxItem("SUIGAS Bill Payment", "UID", "1122334455", "-4,500.00", false, Icons.Default.LocalFireDepartment),
+            TxItem("Money Received from Malik", "TRX ID", "1122334455", "+6,500.00", true, Icons.Default.SwapHoriz)
         )
-    )
-    val yesterday = listOf(
-        TxItem(
-            "Peso Bill Payment",
-            "UID",
-            "1122334455",
-            "-4,500.00",
-            false,
-            Icons.AutoMirrored.Filled.ReceiptLong
-        ),
-        TxItem(
-            "SUIGAS Bill Payment",
-            "UID",
-            "1122334455",
-            "-4,500.00",
-            false,
-            Icons.Default.LocalFireDepartment
+    }
+    val yesterday = remember {
+        listOf(
+            TxItem("Peso Bill Payment", "UID", "1122334455", "-4,500.00", false, Icons.AutoMirrored.Filled.ReceiptLong),
+            TxItem("SUIGAS Bill Payment", "UID", "1122334455", "-4,500.00", false, Icons.Default.LocalFireDepartment)
         )
-    )
+    }
 
     Column {
         Row(
@@ -911,32 +863,17 @@ fun TransactionsSection() {
                 color = PrimaryText
             )
             GlassSurface(
-                modifier = Modifier
-                    .height(32.dp)
-                    .padding(horizontal = 2.dp),
+                modifier = Modifier.height(32.dp).padding(horizontal = 2.dp),
                 cornerRadius = 16.dp,
-                borderAlpha = 0.12f,
                 onClick = {}
             ) {
                 Row(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(horizontal = 12.dp),
+                    modifier = Modifier.align(Alignment.Center).padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
-                        "View All",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = AccentPurple
-                    )
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = AccentPurple,
-                        modifier = Modifier.size(14.dp)
-                    )
+                    Text("View All", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = AccentPurple)
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPurple, modifier = Modifier.size(14.dp))
                 }
             }
         }
@@ -945,15 +882,13 @@ fun TransactionsSection() {
 
         GlassSurface(
             modifier = Modifier.fillMaxWidth(),
-            cornerRadius = 22.dp,
-            glowColor = AccentPurple.copy(alpha = 0.05f)
+            cornerRadius = 22.dp
         ) {
             Column(modifier = Modifier.padding(vertical = 6.dp)) {
                 TxGroupLabel("Today")
                 today.forEachIndexed { index, tx ->
                     TxRow(tx, showDivider = index != today.lastIndex)
                 }
-
                 Spacer(Modifier.height(4.dp))
                 TxGroupLabel("Yesterday")
                 yesterday.forEachIndexed { index, tx ->
@@ -967,25 +902,12 @@ fun TransactionsSection() {
 @Composable
 fun TxGroupLabel(label: String) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, top = 10.dp, bottom = 6.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 10.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(4.dp)
-                .clip(CircleShape)
-                .background(AccentPurple)
-        )
-        Text(
-            text = label,
-            fontSize = 11.5.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = TertiaryText,
-            letterSpacing = 1.sp
-        )
+        Box(modifier = Modifier.size(4.dp).clip(CircleShape).background(AccentPurple))
+        Text(text = label, fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold, color = TertiaryText, letterSpacing = 1.sp)
     }
 }
 
@@ -993,89 +915,32 @@ fun TxGroupLabel(label: String) {
 fun TxRow(item: TxItem, showDivider: Boolean = true) {
     Column {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (item.isCredit) PositiveGreen.copy(alpha = 0.15f)
-                            else AccentPurple.copy(alpha = 0.18f)
-                        ),
+                    modifier = Modifier.size(42.dp).clip(CircleShape).background(if (item.isCredit) PositiveGreen.copy(alpha = 0.15f) else AccentPurple.copy(alpha = 0.18f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        item.icon,
-                        contentDescription = null,
-                        tint = if (item.isCredit) PositiveGreen else AccentPurple,
-                        modifier = Modifier.size(19.dp)
-                    )
+                    Icon(item.icon, contentDescription = null, tint = if (item.isCredit) PositiveGreen else AccentPurple, modifier = Modifier.size(19.dp))
                 }
-
                 Column {
-                    Text(
-                        text = item.title,
-                        color = PrimaryText,
-                        fontSize = 13.5.sp,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = item.refLabel,
-                            color = TertiaryText,
-                            fontSize = 10.sp
-                        )
-                        Text(
-                            text = ":",
-                            color = TertiaryText,
-                            fontSize = 10.sp
-                        )
-                        Text(
-                            text = item.refId,
-                            color = SecondaryText,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                    Text(text = item.title, color = PrimaryText, fontSize = 13.5.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(text = item.refLabel, color = TertiaryText, fontSize = 10.sp)
+                        Text(text = ":", color = TertiaryText, fontSize = 10.sp)
+                        Text(text = item.refId, color = SecondaryText, fontSize = 10.sp, fontWeight = FontWeight.Medium)
                     }
                 }
             }
-
-            Text(
-                text = (if (item.isCredit) "+" else "") + item.amount,
-                color = if (item.isCredit) PositiveGreen else NegativeRed,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+            Text(text = (if (item.isCredit) "+" else "") + item.amount, color = if (item.isCredit) PositiveGreen else NegativeRed, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
         }
         if (showDivider) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 70.dp, end = 16.dp)
-                    .height(1.dp)
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.White.copy(alpha = 0.02f),
-                                Color.White.copy(alpha = 0.08f),
-                                Color.White.copy(alpha = 0.02f)
-                            )
-                        )
-                    )
+                modifier = Modifier.fillMaxWidth().padding(start = 70.dp, end = 16.dp).height(1.dp)
+                    .background(Brush.horizontalGradient(colors = listOf(Color.White.copy(alpha = 0.02f), Color.White.copy(alpha = 0.08f), Color.White.copy(alpha = 0.02f))))
             )
         }
     }
@@ -1087,102 +952,38 @@ fun TxRow(item: TxItem, showDivider: Boolean = true) {
 data class NavItem(val label: String, val icon: ImageVector)
 
 @Composable
-fun BoxScope.BottomNavBar(modifier: Modifier = Modifier) {
-    val leftItems = listOf(
-        NavItem("Products", Icons.Default.CardGiftcard),
-        NavItem("Locate", Icons.Default.Place),
-        NavItem("Discounts", Icons.Default.Percent)
-    )
-    val rightItems = listOf(
-        NavItem("Qibla", Icons.Default.Inventory2),
-        NavItem("Contact", Icons.Default.Call),
-        NavItem("FAQs", Icons.Default.Help)
-    )
+fun BoxScope.BottomNavBar(onQrClick: () -> Unit, modifier: Modifier = Modifier) {
+    val leftItems = remember { listOf(NavItem("Products", Icons.Default.CardGiftcard), NavItem("Locate", Icons.Default.Place), NavItem("Discounts", Icons.Default.Percent)) }
+    val rightItems = remember { listOf(NavItem("Qibla", Icons.Default.Inventory2), NavItem("Contact", Icons.Default.Call), NavItem("FAQs", Icons.Default.Help)) }
 
     Box(
-        modifier = modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        BgBottom.copy(alpha = 0.8f),
-                        BgBottom
-                    )
-                )
-            )
+        modifier = modifier.align(Alignment.BottomCenter).fillMaxWidth()
+            .background(Brush.verticalGradient(colors = listOf(Color.Transparent, BgBottom.copy(alpha = 0.8f), BgBottom)))
             .navigationBarsPadding()
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // Feedback text removed from here
-
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
             Box(contentAlignment = Alignment.TopCenter) {
-                // Gradient Purple Navigation Bar Background
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .padding(top = 12.dp)
+                    modifier = Modifier.fillMaxWidth().height(80.dp).padding(top = 12.dp)
                         .shadow(12.dp, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                        .background(
-                            Brush.horizontalGradient(listOf(AccentPurpleDeep, AccentPurple)),
-                            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-                        )
-                        .border(
-                            2.dp,
-                            Color.White.copy(alpha = 0.4f),
-                            RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-                        )
+                        .background(Brush.horizontalGradient(listOf(AccentPurpleDeep, AccentPurple)), shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                        .border(2.dp, Color.White.copy(alpha = 0.4f), RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        // Left Side Items
-                        Row(
-                            modifier = Modifier.weight(1f),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
+                    Row(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceEvenly) {
                             leftItems.forEach { NavIcon(it, Color.White) }
                         }
-
-                        // Space for the center FAB
                         Spacer(Modifier.width(80.dp))
-
-                        // Right Side Items
-                        Row(
-                            modifier = Modifier.weight(1f),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
+                        Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceEvenly) {
                             rightItems.forEach { NavIcon(it, Color.White) }
                         }
                     }
                 }
-
-                // Center Purple QR FAB
                 Box(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .shadow(12.dp, CircleShape)
-                        .clip(CircleShape)
-                        .background(AccentPurpleDeep)
-                        .border(4.dp, Color.White, CircleShape)
-                        .clickable { },
+                    modifier = Modifier.size(72.dp).shadow(12.dp, CircleShape).clip(CircleShape).background(AccentPurpleDeep).border(4.dp, Color.White, CircleShape).clickable { onQrClick() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.QrCodeScanner,
-                        contentDescription = "QR Scanner",
-                        tint = Color.White,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    Icon(imageVector = Icons.Default.QrCodeScanner, contentDescription = "QR Scanner", tint = Color.White, modifier = Modifier.size(32.dp))
                 }
             }
         }
@@ -1191,60 +992,15 @@ fun BoxScope.BottomNavBar(modifier: Modifier = Modifier) {
 
 @Composable
 fun NavIcon(item: NavItem, tint: Color) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-            .clickable { }
-            .padding(vertical = 4.dp, horizontal = 4.dp)
-    ) {
-        Icon(
-            item.icon,
-            contentDescription = item.label,
-            tint = tint,
-            modifier = Modifier.size(24.dp)
-        )
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.clip(RoundedCornerShape(12.dp)).clickable { }.padding(vertical = 4.dp, horizontal = 4.dp)) {
+        Icon(item.icon, contentDescription = item.label, tint = tint, modifier = Modifier.size(24.dp))
         Spacer(Modifier.height(2.dp))
-        Text(
-            item.label,
-            fontSize = 10.sp,
-            color = tint,
-            fontWeight = FontWeight.SemiBold
-        )
+        Text(item.label, fontSize = 10.sp, color = tint, fontWeight = FontWeight.SemiBold)
     }
 }
-
-// ============================================================
-//  PREVIEWS
-// ============================================================
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MainScreenPreview() {
-    Meezan_bank_appTheme {
-        AppBackground {
-            HomeScreen()
-        }
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF190F2A)
-@Composable
-fun BalanceHeroPreview() {
-    Meezan_bank_appTheme {
-        Box(modifier = Modifier.padding(20.dp)) {
-            BalanceHeroSection()
-        }
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF190F2A)
-@Composable
-fun ServicesGridPreview() {
-    Meezan_bank_appTheme {
-        Box(modifier = Modifier.padding(20.dp)) {
-            ServicesGrid()
-        }
-    }
+    Meezan_bank_appTheme { AppBackground { HomeScreen() } }
 }
