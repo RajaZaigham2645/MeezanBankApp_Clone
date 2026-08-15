@@ -47,6 +47,11 @@
             android:exported="false"
             android:label="Add Beneficiary Details"
             android:theme="@style/Theme.Meezan_bank_app" />
+        <activity
+            android:name=".DebitcardActivity"
+            android:exported="false"
+            android:label="Debit Card"
+            android:theme="@style/Theme.Meezan_bank_app" />
     </application>
 
 </manifest>

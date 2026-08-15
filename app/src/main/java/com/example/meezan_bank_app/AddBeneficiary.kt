@@ -55,25 +55,29 @@ fun AddBeneficiaryScreen() {
     var searchText by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    val banks = listOf(
-        Bank("Meezan Bank", "M"),
-        Bank("Other Banks", "O"),
-        Bank("Jazz Cash Wallet", "J"),
-        Bank("EasyPaisa-Telenor Bank", "E"),
-        Bank("Nayapay", "N"),
-        Bank("Sadapay", "S"),
-        Bank("HBL KONNECT", "H"),
-        Bank("Bank Al-Habib", "B"),
-        Bank("UBL", "U"),
-        Bank("Bank Alfalah", "B"),
-        Bank("Askari bank", "A"),
-        Bank("MCB", "M"),
-        Bank("BOP-Bank of Punjab", "B"),
-        Bank("NBP - (National bank of Pakistan)", "N"),
-        Bank("Allied bank", "A")
-    )
+    val banks = remember {
+        listOf(
+            Bank("Meezan Bank", "M"),
+            Bank("Other Banks", "O"),
+            Bank("Jazz Cash Wallet", "J"),
+            Bank("EasyPaisa-Telenor Bank", "E"),
+            Bank("Nayapay", "N"),
+            Bank("Sadapay", "S"),
+            Bank("HBL KONNECT", "H"),
+            Bank("Bank Al-Habib", "B"),
+            Bank("UBL", "U"),
+            Bank("Bank Alfalah", "B"),
+            Bank("Askari bank", "A"),
+            Bank("MCB", "M"),
+            Bank("BOP-Bank of Punjab", "B"),
+            Bank("NBP - (National bank of Pakistan)", "N"),
+            Bank("Allied bank", "A")
+        )
+    }
 
-    val filteredBanks = banks.filter { it.name.contains(searchText, ignoreCase = true) }
+    val filteredBanks = remember(searchText, banks) {
+        banks.filter { it.name.contains(searchText, ignoreCase = true) }
+    }
 
     Column(
         modifier = Modifier
@@ -161,15 +165,21 @@ fun AddBeneficiaryScreen() {
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(filteredBanks) { bank ->
-                BankItem(
-                    bank = bank,
-                    onBankClick = { 
+            items(
+                items = filteredBanks,
+                key = { it.name }
+            ) { bank ->
+                val onBankClick = remember(bank, context) {
+                    {
                         val intent = Intent(context, AddBenAccountDetailsActivity::class.java).apply {
                             putExtra("BANK_NAME", bank.name)
                         }
                         context.startActivity(intent)
                     }
+                }
+                BankItem(
+                    bank = bank,
+                    onBankClick = onBankClick
                 )
             }
         }
@@ -188,72 +198,86 @@ fun BankItem(
 
     when (bank.name) {
         "Meezan Bank" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF6C2BD9), Color(0xFF9B4DFF), Color(0xFFC24DFF))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF6C2BD9), Color(0xFF9B4DFF), Color(0xFFC24DFF))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "Jazz Cash Wallet" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFFFF6B00), Color(0xFFFF9100), Color(0xFFFFB700))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFFFF6B00), Color(0xFFFF9100), Color(0xFFFFB700))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "EasyPaisa-Telenor Bank" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF00C853), Color(0xFF1DE9B6), Color(0xFF00E676))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF00C853), Color(0xFF1DE9B6), Color(0xFF00E676))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "Nayapay" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFFFFA000), Color(0xFFFFB300))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFFFFA000), Color(0xFFFFB300))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "Sadapay" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF00BFA5), Color(0xFF1DE9B6))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF00BFA5), Color(0xFF1DE9B6))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "HBL KONNECT" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF006D64), Color(0xFF00A191), Color(0xFF00C4B4))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF006D64), Color(0xFF00A191), Color(0xFF00C4B4))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "Bank Al-Habib" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF800000), Color(0xFFA52A2A), Color(0xFF800000))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF800000), Color(0xFFA52A2A), Color(0xFF800000))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "UBL" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF003366), Color(0xFF0056B3), Color(0xFF003366))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF003366), Color(0xFF0056B3), Color(0xFF003366))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "Bank Alfalah" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFFB22222), Color(0xFFDC143C), Color(0xFFB22222))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFFB22222), Color(0xFFDC143C), Color(0xFFB22222))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "Askari bank" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF004B8D), Color(0xFF0066B3))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF004B8D), Color(0xFF0066B3))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "MCB" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF007A33), Color(0xFF00A651))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF007A33), Color(0xFF00A651))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "BOP-Bank of Punjab" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFFFDB913), Color(0xFFF7941D))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFFFDB913), Color(0xFFF7941D))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "NBP - (National bank of Pakistan)" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF008560), Color(0xFF00B345))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF008560), Color(0xFF00B345))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }
         "Allied bank" -> {
-            Box(modifier = gradientModifier.background(Brush.horizontalGradient(listOf(Color(0xFF00529B), Color(0xFF007CC3))))) {
+            val brush = remember { Brush.horizontalGradient(listOf(Color(0xFF00529B), Color(0xFF007CC3))) }
+            Box(modifier = gradientModifier.background(brush)) {
                 BankItemContent(bank)
             }
         }

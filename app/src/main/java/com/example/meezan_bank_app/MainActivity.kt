@@ -181,7 +181,7 @@ fun GlassSurface(
 
 // ============================================================
 //  HOME SCREEN
-// ============================================================
+// ============================================
 @Composable
 fun BoxScope.HomeScreen() {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -737,6 +737,7 @@ data class ServiceItem(val name: String, val icon: ImageVector, val badge: Strin
 
 @Composable
 fun ServicesGrid() {
+    val context = LocalContext.current
     val items = listOf(
         ServiceItem("Bills & Top-up", Icons.AutoMirrored.Filled.ReceiptLong),
         ServiceItem("Debit Card", Icons.Default.CreditCard),
@@ -756,23 +757,28 @@ fun ServicesGrid() {
         userScrollEnabled = false
     ) {
         items(items) { item ->
-            ServiceGridItem(item)
+            ServiceGridItem(item, onClick = {
+                if (item.name == "Debit Card") {
+                    val intent = Intent(context, DebitcardActivity::class.java)
+                    context.startActivity(intent)
+                }
+            })
         }
     }
 }
 
 @Composable
-fun ServiceGridItem(item: ServiceItem) {
+fun ServiceGridItem(item: ServiceItem, onClick: () -> Unit = {}) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { }
+        modifier = Modifier.clickable { onClick() }
     ) {
         Box {
             GlassSurface(
                 modifier = Modifier.size(62.dp),
                 cornerRadius = 20.dp,
                 glowColor = AccentPurple.copy(alpha = 0.08f),
-                onClick = {}
+                onClick = onClick
             ) {
                 Box(
                     modifier = Modifier

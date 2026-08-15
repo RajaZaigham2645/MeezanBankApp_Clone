@@ -86,20 +86,20 @@ fun SendMoneyScreen() {
             type = "easypaisa"
         ),
         Beneficiary(
-            name = "Waleed",
-            subtitle = "MUHAMMAD WALEED HASSAN",
-            accountNumber = "03266535454",
+            name = "Zaigham",
+            subtitle = "Zaigham",
+            accountNumber = "03430667249",
             type = "jazzcash"
         ),
         Beneficiary(
-            name = "Fatima JazzCash",
-            subtitle = "GHAZALA BIBI",
+            name = "123",
+            subtitle = "123",
             accountNumber = "03030540858",
             type = "jazzcash"
         ),
         Beneficiary(
-            name = "Ammar",
-            subtitle = "MUHAMMAD AMMAR HASHMI",
+            name = "abc",
+            subtitle = "abc",
             accountNumber = null,
             type = "bank"
         )
