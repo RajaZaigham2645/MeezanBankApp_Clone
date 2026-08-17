@@ -52,6 +52,11 @@
             android:exported="false"
             android:label="Debit Card"
             android:theme="@style/Theme.Meezan_bank_app" />
+        <activity
+            android:name=".ViewStatementActivity"
+            android:exported="false"
+            android:label="E-Statement"
+            android:theme="@style/Theme.Meezan_bank_app" />
     </application>
 
 </manifest>

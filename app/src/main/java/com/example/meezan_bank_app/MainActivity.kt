@@ -33,8 +33,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,6 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.example.meezan_bank_app.ui.theme.Meezan_bank_appTheme
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
@@ -175,6 +178,7 @@ fun BoxScope.HomeScreen() {
     val context = LocalContext.current
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = remember { listOf("Home", "Transactions", "Invest", "Profile") }
+    var showShareDialog by remember { mutableStateOf(false) }
 
     val startScanner = {
         val options = GmsBarcodeScannerOptions.Builder()
@@ -204,7 +208,7 @@ fun BoxScope.HomeScreen() {
         Spacer(Modifier.height(14.dp))
         BalanceHeroSection()
         Spacer(Modifier.height(16.dp))
-        AccountActionPills()
+        AccountActionPills(onShareClick = { showShareDialog = true })
         Spacer(Modifier.height(20.dp))
         MoneyActionButtons()
         Spacer(Modifier.height(28.dp))
@@ -255,6 +259,11 @@ fun BoxScope.HomeScreen() {
         TransactionsSection()
         Spacer(Modifier.height(16.dp))
     }
+    
+    if (showShareDialog) {
+        ShareAccountDialog(onDismiss = { showShareDialog = false })
+    }
+    
     BottomNavBar(onQrClick = { startScanner() }, modifier = Modifier)
 }
 
@@ -492,7 +501,8 @@ fun BalanceHeroSection() {
 //  SHARE / STATEMENT PILLS
 // ============================================================
 @Composable
-fun AccountActionPills() {
+fun AccountActionPills(onShareClick: () -> Unit) {
+    val context = LocalContext.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -500,28 +510,42 @@ fun AccountActionPills() {
         GlassPillButton(
             text = "Share Account",
             icon = Icons.Default.Share,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            onClick = onShareClick
         )
         GlassPillButton(
             text = "View Statement",
             icon = Icons.Default.Description,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            onClick = {
+                val intent = Intent(context, ViewStatementActivity::class.java)
+                context.startActivity(intent)
+            }
         )
         GlassPillButton(
             text = "Manage Cards",
             icon = Icons.Default.CreditCard,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            onClick = {
+                val intent = Intent(context, DebitcardActivity::class.java)
+                context.startActivity(intent)
+            }
         )
     }
 }
 
 @Composable
-fun GlassPillButton(text: String, icon: ImageVector, modifier: Modifier = Modifier) {
+fun GlassPillButton(
+    text: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
     GlassSurface(
         modifier = modifier.height(44.dp),
         cornerRadius = 22.dp,
         borderAlpha = 0.18f,
-        onClick = {}
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
@@ -544,6 +568,119 @@ fun GlassPillButton(text: String, icon: ImageVector, modifier: Modifier = Modifi
                 maxLines = 1,
                 textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+// ============================================================
+//  SHARE DIALOG
+// ============================================================
+@Composable
+fun ShareAccountDialog(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+    val accountName = "Zaigham"
+    val accountNumber = "3001 2944 4678 1556"
+
+    Dialog(onDismissRequest = onDismiss) {
+        GlassSurface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            cornerRadius = 28.dp,
+            glowColor = AccentPurple.copy(alpha = 0.2f),
+            fillColors = listOf(BgTop.copy(alpha = 0.98f), BgMid.copy(alpha = 0.95f))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Account Details",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PrimaryText,
+                    fontFamily = FontFamily.Serif
+                )
+                
+                Spacer(Modifier.height(24.dp))
+                
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.08f))
+                        .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+                        .padding(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Column {
+                            Text(
+                                text = "ACCOUNT HOLDER",
+                                fontSize = 9.sp,
+                                color = TertiaryText,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+                            Text(
+                                text = accountName,
+                                fontSize = 16.sp,
+                                color = PrimaryText,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        
+                        Divider(color = Color.White.copy(alpha = 0.15f))
+                        
+                        Column {
+                            Text(
+                                text = "ACCOUNT NUMBER",
+                                fontSize = 9.sp,
+                                color = TertiaryText,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+                            Text(
+                                text = accountNumber,
+                                fontSize = 18.sp,
+                                color = AccentPurple,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(Modifier.height(28.dp))
+                
+                Button(
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString("Name: $accountName\nAccount: $accountNumber"))
+                        Toast.makeText(context, "Details copied to clipboard", Toast.LENGTH_SHORT).show()
+                        onDismiss()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AccentPurpleDeep
+                    )
+                ) {
+                    Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Copy Details", fontWeight = FontWeight.Bold)
+                }
+                
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text("Close", color = SecondaryText)
+                }
+            }
         }
     }
 }
