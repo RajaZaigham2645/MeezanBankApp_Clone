@@ -63,6 +63,11 @@
             android:exported="false"
             android:label="E-Statement"
             android:theme="@style/Theme.Meezan_bank_app" />
+        <activity
+            android:name=".BillsandTopup"
+            android:exported="false"
+            android:label="Bills &amp; Top-up"
+            android:theme="@style/Theme.Meezan_bank_app" />
     </application>
 
 </manifest>

@@ -290,7 +290,16 @@ fun TopBar() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp),
+            .height(64.dp)
+            .drawBehind {
+                // Border line below top bar
+                drawLine(
+                    color = Color.White.copy(alpha = 0.15f),
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = 1.dp.toPx()
+                )
+            },
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -920,6 +929,9 @@ fun ServicesGrid() {
                                 if (item.name == "Debit Card") {
                                     val intent = Intent(context, DebitcardActivity::class.java)
                                     context.startActivity(intent)
+                                } else if (item.name == "Bills & Top-up") {
+                                    val intent = Intent(context, BillsandTopup::class.java)
+                                    context.startActivity(intent)
                                 }
                             }
                         )
@@ -1137,8 +1149,29 @@ fun BoxScope.BottomNavBar(onQrClick: () -> Unit, modifier: Modifier = Modifier) 
                 Box(
                     modifier = Modifier.fillMaxWidth().height(80.dp).padding(top = 12.dp)
                         .shadow(12.dp, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                        .background(Brush.horizontalGradient(listOf(AccentPurpleDeep, AccentPurple)), shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                        .border(2.dp, Color.White.copy(alpha = 0.4f), RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                        // Solid base to prevent background visibility
+                        .background(BgBottom, shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                        // Refined Glass Gradient for Bottom Nav Bar
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.White.copy(alpha = 0.15f),
+                                    Color.White.copy(alpha = 0.02f)
+                                )
+                            ),
+                            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+                        )
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    AccentPurpleDeep.copy(alpha = 0.4f),
+                                    AccentPurple.copy(alpha = 0.2f),
+                                    AccentPurpleDeep.copy(alpha = 0.4f)
+                                )
+                            ),
+                            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+                        )
+                        .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
                 ) {
                     Row(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceEvenly) {
