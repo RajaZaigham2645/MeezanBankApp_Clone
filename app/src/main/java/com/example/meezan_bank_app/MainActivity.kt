@@ -1,5 +1,6 @@
 package com.example.meezan_bank_app
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -12,9 +13,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,6 +47,7 @@ import com.example.meezan_bank_app.ui.theme.Meezan_bank_appTheme
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import org.json.JSONObject
 
 // ============================================================
 //  COLOR SYSTEM
@@ -104,7 +103,6 @@ fun AppBackground(content: @Composable BoxScope.() -> Unit) {
             .fillMaxSize()
             .background(mainGradient)
             .drawBehind {
-                // Ambient glow blobs using radial gradients (High Performance alternative to Blur)
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(AccentPurple.copy(alpha = 0.15f), Color.Transparent),
@@ -157,7 +155,7 @@ fun GlassSurface(
     Box(
         modifier = modifier
             .shadow(
-                elevation = 12.dp, // Reduced elevation for better performance
+                elevation = 12.dp,
                 shape = shape,
                 ambientColor = Color.Black.copy(alpha = 0.4f),
                 spotColor = Color.Black.copy(alpha = 0.2f)
@@ -176,6 +174,22 @@ fun GlassSurface(
 @Composable
 fun BoxScope.HomeScreen() {
     val context = LocalContext.current
+    val sharedPrefs = remember { context.getSharedPreferences("MeezanBankPrefs", Context.MODE_PRIVATE) }
+    
+    val loggedInUsername = sharedPrefs.getString("logged_in_username", "") ?: ""
+    val userDataStr = sharedPrefs.getString("user_$loggedInUsername", null)
+    
+    var accountName by remember { mutableStateOf("Zaigham") }
+    var accountNumber by remember { mutableStateOf("3001 2944 4678 1556") }
+    
+    LaunchedEffect(userDataStr) {
+        if (userDataStr != null) {
+            val json = JSONObject(userDataStr)
+            accountName = json.optString("fullName", "Zaigham")
+            accountNumber = json.optString("accountNumber", "3001 2944 4678 1556")
+        }
+    }
+
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = remember { listOf("Home", "Transactions", "Invest", "Profile") }
     var showShareDialog by remember { mutableStateOf(false) }
@@ -206,18 +220,16 @@ fun BoxScope.HomeScreen() {
         Spacer(Modifier.height(8.dp))
         TopBar()
         Spacer(Modifier.height(14.dp))
-        BalanceHeroSection()
+        BalanceHeroSection(accountName, accountNumber)
         Spacer(Modifier.height(16.dp))
         AccountActionPills(onShareClick = { showShareDialog = true })
         Spacer(Modifier.height(20.dp))
         MoneyActionButtons()
         Spacer(Modifier.height(28.dp))
 
-        // Quick Stats Row
         QuickStatsRow()
         Spacer(Modifier.height(24.dp))
 
-        // Section Header with Tabs
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -261,7 +273,7 @@ fun BoxScope.HomeScreen() {
     }
     
     if (showShareDialog) {
-        ShareAccountDialog(onDismiss = { showShareDialog = false })
+        ShareAccountDialog(accountName, accountNumber, onDismiss = { showShareDialog = false })
     }
     
     BottomNavBar(onQrClick = { startScanner() }, modifier = Modifier)
@@ -272,6 +284,9 @@ fun BoxScope.HomeScreen() {
 // ============================================================
 @Composable
 fun TopBar() {
+    val context = LocalContext.current
+    val sharedPrefs = remember { context.getSharedPreferences("MeezanBankPrefs", Context.MODE_PRIVATE) }
+    
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -321,7 +336,10 @@ fun TopBar() {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 GlassIconButton(icon = Icons.Default.Notifications, badgeCount = 3)
                 Spacer(Modifier.width(10.dp))
-                GlassIconButton(icon = Icons.AutoMirrored.Filled.Logout)
+                GlassIconButton(icon = Icons.AutoMirrored.Filled.Logout, onClick = {
+                    sharedPrefs.edit().remove("logged_in_username").apply()
+                    context.startActivity(Intent(context, LoginActivity::class.java))
+                })
             }
         }
     }
@@ -369,7 +387,7 @@ fun GlassIconButton(icon: ImageVector, badgeCount: Int? = null, onClick: () -> U
 //  BALANCE HERO (Compact & Structured)
 // ============================================================
 @Composable
-fun BalanceHeroSection() {
+fun BalanceHeroSection(name: String, accountNum: String) {
     var isVisible by remember { mutableStateOf(true) }
 
     GlassSurface(
@@ -396,7 +414,7 @@ fun BalanceHeroSection() {
                         fontWeight = FontWeight.Normal
                     )
                     Text(
-                        text = "Zaigham",
+                        text = name,
                         fontSize = 15.sp,
                         color = PrimaryText,
                         fontWeight = FontWeight.Bold,
@@ -475,7 +493,7 @@ fun BalanceHeroSection() {
                         letterSpacing = 0.5.sp
                     )
                     Text(
-                        text = "3001 2944 4678 1556",
+                        text = accountNum,
                         fontSize = 12.sp,
                         color = SecondaryText,
                         fontFamily = FontFamily.Monospace
@@ -576,11 +594,9 @@ fun GlassPillButton(
 //  SHARE DIALOG
 // ============================================================
 @Composable
-fun ShareAccountDialog(onDismiss: () -> Unit) {
+fun ShareAccountDialog(name: String, accountNum: String, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
-    val accountName = "Zaigham"
-    val accountNumber = "3001 2944 4678 1556"
 
     Dialog(onDismissRequest = onDismiss) {
         GlassSurface(
@@ -625,7 +641,7 @@ fun ShareAccountDialog(onDismiss: () -> Unit) {
                                 letterSpacing = 1.sp
                             )
                             Text(
-                                text = accountName,
+                                text = name,
                                 fontSize = 16.sp,
                                 color = PrimaryText,
                                 fontWeight = FontWeight.SemiBold
@@ -643,7 +659,7 @@ fun ShareAccountDialog(onDismiss: () -> Unit) {
                                 letterSpacing = 1.sp
                             )
                             Text(
-                                text = accountNumber,
+                                text = accountNum,
                                 fontSize = 18.sp,
                                 color = AccentPurple,
                                 fontWeight = FontWeight.Bold,
@@ -657,7 +673,7 @@ fun ShareAccountDialog(onDismiss: () -> Unit) {
                 
                 Button(
                     onClick = {
-                        clipboardManager.setText(AnnotatedString("Name: $accountName\nAccount: $accountNumber"))
+                        clipboardManager.setText(AnnotatedString("Name: $name\nAccount: $accountNum"))
                         Toast.makeText(context, "Details copied to clipboard", Toast.LENGTH_SHORT).show()
                         onDismiss()
                     },
@@ -873,53 +889,74 @@ fun ServicesGrid() {
         listOf(
             ServiceItem("Bills & Top-up", Icons.AutoMirrored.Filled.ReceiptLong),
             ServiceItem("Debit Card", Icons.Default.CreditCard),
-            ServiceItem("Roast Payments", Icons.Default.Payments, badge = "New"),
+            ServiceItem("Raast Payments", Icons.Default.Payments, badge = "New"),
             ServiceItem("Zakat & Sadqat", Icons.Default.VolunteerActivism),
             ServiceItem("Feedback", Icons.Default.ChatBubbleOutline),
             ServiceItem("Settings", Icons.Default.Settings)
         )
     }
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(210.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-        userScrollEnabled = false
+    GlassSurface(
+        modifier = Modifier.fillMaxWidth(),
+        cornerRadius = 24.dp,
+        borderAlpha = 0.12f
     ) {
-        items(items) { item ->
-            ServiceGridItem(item, onClick = {
-                if (item.name == "Debit Card") {
-                    val intent = Intent(context, DebitcardActivity::class.java)
-                    context.startActivity(intent)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 20.dp, horizontal = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            items.chunked(3).forEach { rowItems ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    rowItems.forEach { item ->
+                        ServiceGridItem(
+                            item = item,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                if (item.name == "Debit Card") {
+                                    val intent = Intent(context, DebitcardActivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                            }
+                        )
+                    }
+                    if (rowItems.size < 3) {
+                        repeat(3 - rowItems.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
-            })
+            }
         }
     }
 }
 
 @Composable
-fun ServiceGridItem(item: ServiceItem, onClick: () -> Unit = {}) {
+fun ServiceGridItem(item: ServiceItem, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { onClick() }
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() }
+            .padding(vertical = 4.dp)
     ) {
-        Box {
-            GlassSurface(
-                modifier = Modifier.size(62.dp),
-                cornerRadius = 20.dp,
-                glowColor = AccentPurple.copy(alpha = 0.08f),
-                onClick = onClick
+        Box(contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+                    .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    item.icon,
-                    contentDescription = null,
-                    tint = PrimaryText.copy(alpha = 0.92f),
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(26.dp)
+                    imageVector = item.icon,
+                    contentDescription = item.name,
+                    tint = PrimaryText,
+                    modifier = Modifier.size(24.dp)
                 )
             }
             if (item.badge != null) {
@@ -928,20 +965,15 @@ fun ServiceGridItem(item: ServiceItem, onClick: () -> Unit = {}) {
                     shape = RoundedCornerShape(6.dp),
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .offset(x = 6.dp, y = (-6).dp)
-                        .shadow(
-                            elevation = 4.dp,
-                            shape = RoundedCornerShape(6.dp),
-                            ambientColor = PositiveGreen.copy(alpha = 0.4f),
-                            spotColor = PositiveGreen.copy(alpha = 0.3f)
-                        )
+                        .offset(x = 2.dp, y = (-2).dp)
+                        .shadow(4.dp, RoundedCornerShape(6.dp))
                 ) {
                     Text(
                         text = item.badge,
-                        fontSize = 7.5.sp,
+                        fontSize = 7.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
                     )
                 }
             }
@@ -950,11 +982,13 @@ fun ServiceGridItem(item: ServiceItem, onClick: () -> Unit = {}) {
         Text(
             text = item.name,
             color = SecondaryText,
-            fontSize = 11.5.sp,
+            fontSize = 10.5.sp,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            lineHeight = 13.sp,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp)
         )
     }
 }

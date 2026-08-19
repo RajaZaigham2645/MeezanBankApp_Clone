@@ -11,17 +11,23 @@
         android:roundIcon="@drawable/meezan_bank_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.Meezan_bank_app">
+        
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.Meezan_bank_app">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Meezan_bank_app" />
+            
         <activity
             android:name=".SendMoneyActivity"
             android:exported="false"
